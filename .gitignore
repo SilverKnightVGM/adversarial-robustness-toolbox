@@ -21,6 +21,7 @@ parts/
 sdist/
 var/
 *.egg-info/
+*.dist-info/
 .installed.cfg
 *.egg
 
@@ -113,3 +114,6 @@ demo/pics/*
 !notebooks/*.ipynb
 !notebooks/adaptive_defence_evaluations/*.ipynb
 !notebooks/adversarial_patch/*.ipynb
+
+# Exceptions for my scripts
+!my-scripts/*

@@ -64,6 +64,7 @@ class SpatialTransformation(EvasionAttack):
         num_translations: int = 1,
         max_rotation: float = 0.0,
         num_rotations: int = 1,
+        attack_type: str = 'grid',
     ) -> None:
         """
         :param classifier: A trained classifier.
@@ -73,12 +74,14 @@ class SpatialTransformation(EvasionAttack):
         :param max_rotation: The maximum rotation in either direction in degrees. The value is expected to be in the
                range `[0, 180]`.
         :param num_rotations: The number of rotations to search on grid spacing.
+        :param attack_type: The type of spatial attack according to original paper. Possible values: `grid` or `random`.
         """
         super(SpatialTransformation, self).__init__(estimator=classifier)
         self.max_translation = max_translation
         self.num_translations = num_translations
         self.max_rotation = max_rotation
         self.num_rotations = num_rotations
+        self.attack_type = attack_type
         self._check_params()
 
         self.fooling_rate: Optional[float] = None
@@ -94,7 +97,7 @@ class SpatialTransformation(EvasionAttack):
         :param y: An array with the original labels to be predicted.
         :return: An array holding the adversarial examples.
         """
-        logger.info("Computing spatial transformation based on grid search.")
+        # logger.info("Computing spatial transformation based on grid search.") #this is called on every sample of the array x
 
         if len(x.shape) == 2:
             raise ValueError(
@@ -144,10 +147,13 @@ class SpatialTransformation(EvasionAttack):
             for trans_x_i in grid_trans_x:
                 for trans_y_i in grid_trans_y:
                     for rot_i in grid_rot:
-
+                        
+                        print("")
+                        logger.info("Generating adversaries...")
                         # Generate the adversarial examples
                         x_adv_i = self._perturb(x, trans_x_i, trans_y_i, rot_i)
 
+                        logger.info("Computing error rate...")
                         # Compute the error rate
                         y_adv_i = np.argmax(self.estimator.predict(x_adv_i, batch_size=1), axis=1)
                         fooling_rate_i = np.sum(y_pred_max != y_adv_i) / nb_instances
@@ -179,6 +185,9 @@ class SpatialTransformation(EvasionAttack):
         return x_adv
 
     def _perturb(self, x: np.ndarray, trans_x: int, trans_y: int, rot: float) -> np.ndarray:
+        # print("Shape of x: {}".format(x.shape))
+        # print("Ndim x: {}".format(x.ndim))
+        
         if not self.estimator.channels_first:
             x_adv = shift(x, [0, trans_x, trans_y, 0])
             x_adv = rotate(x_adv, angle=rot, axes=(1, 2), reshape=False)
@@ -207,3 +216,6 @@ class SpatialTransformation(EvasionAttack):
 
         if not isinstance(self.num_rotations, int) or self.num_rotations <= 0:
             raise ValueError("The number of rotations must be a positive integer.")
+
+        if self.attack_type not in ["grid", "random"]:
+            raise ValueError("Attack type must be either `grid` or `random`.")

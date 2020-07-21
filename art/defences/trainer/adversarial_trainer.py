@@ -231,10 +231,12 @@ class AdversarialTrainer(Trainer):
 
                 # If source and target models are the same, craft fresh adversarial samples
                 if attack.estimator == self._classifier:
+                    logger.info("Source and targe are the same.")
                     x_batch[adv_ids] = attack.generate(x_batch[adv_ids], y=y_batch[adv_ids])
 
                 # Otherwise, use precomputed adversarial samples
                 else:
+                    logger.info("Source and targe are NOT the same.")
                     x_adv = self._precomputed_adv_samples[attack_id]
                     x_adv = x_adv[ind[batch_id * batch_size : min((batch_id + 1) * batch_size, x.shape[0])]][adv_ids]
                     x_batch[adv_ids] = x_adv

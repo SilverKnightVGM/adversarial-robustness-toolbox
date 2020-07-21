@@ -20,7 +20,7 @@ master_seed(1234)
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--mlFramework", action="store", default="tensorflow",
+        "--mlFramework", action="store", default="keras",
         help="ART tests allow you to specify which mlFramework to use. The default mlFramework used is tensorflow. "
              "Other options available are {0}".format(art_supported_frameworks)
     )
