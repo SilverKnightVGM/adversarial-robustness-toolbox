@@ -117,3 +117,6 @@ demo/pics/*
 
 # Exceptions for my scripts
 !my-scripts/*
+
+# Ignore saved models
+*.h5
