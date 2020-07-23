@@ -116,7 +116,7 @@ demo/pics/*
 !notebooks/adversarial_patch/*.ipynb
 
 # Exceptions for my scripts
-!my-scripts/*
+!my_scripts/*
 
 # Ignore saved models
 *.h5
