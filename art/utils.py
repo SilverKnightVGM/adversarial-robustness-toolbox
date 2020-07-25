@@ -31,6 +31,7 @@ import tarfile
 from typing import Callable, List, Optional, Tuple, Union, TYPE_CHECKING
 import warnings
 import zipfile
+import platform
 
 import numpy as np
 from scipy.special import gammainc
@@ -580,6 +581,56 @@ def load_mnist(raw: bool = False,) -> DATASET_TYPE:
 
     return (x_train, y_train), (x_test, y_test), min_, max_
 
+
+def load_greebles(dataset_folder: str = "./Greebles-2-0-symmetric", render_util_folder: str = "./my_scripts", blender_folder: str = './blender-2.78c-windows64', mode: str = 'filenames', render_folder: str = None) -> DATASET_TYPE:
+    """
+    Loads the Greebles dataset, the blender executable and 'render.py' file to use for rendering the dataset to 2D images.
+    The 3D models are inside 'Greebles-2-0-symmetric', in subfolders depending on the file type.
+
+    :return: `filenames`
+    """
+    import subprocess
+    
+    if not os.path.isdir(dataset_folder):
+        raise OSError(2, 'No such directory', str(dataset_folder))
+    if not os.path.exists(os.path.join(render_util_folder, 'render.py')):
+        raise OSError(2, 'render.py not found', str(render_util_folder))
+    
+    render_script = os.path.join(render_util_folder, 'render.py')
+    
+    # Find the correct version of blender depending on the OS
+    if (platform.system() == "Windows"):
+        blender_exec = os.path.join(blender_folder, 'blender.exe')
+    else:
+        blender_exec = os.path.join(blender_folder, 'blender')
+        
+    if not os.path.exists(os.path.join(blender_folder, blender_exec)):
+        raise OSError(2, 'Blender executable not found', str(blender_folder))
+    
+    # If you want to split command automatically
+    # import shlex; shlex.split("/bin/prog -i data.txt -o \"more data.txt\"")
+    
+    # https://janakiev.com/blog/python-shell-commands/
+    blender_process = subprocess.run([blender_exec, '-b', '-P', render_script, '--', 
+                        '-st', 'test', '-sm', 'original', '-rp', render_folder, '-df', dataset_folder, '-rm', 'none', '-pf', 'keras',
+                        '-is', '32', '-ni', '8000'])
+    
+    # blender_process = subprocess.run([blender_exec, '-b', '-P', render_script, '--', 
+                        # '-st', 'test', '-sm', 'original', '-rp', render_folder,
+                        # '-rm', 'slight', '-pf', 'keras', '-is', '32', '-ni', '8000'],
+                         # stdout=subprocess.PIPE,
+                         # universal_newlines=True)
+    # blender_process_ouput = blender_process.stdout
+    
+    # Get return dictionary from render.py
+    with open('render_result.json') as f:
+        render_dict = json.load(f)
+    
+    # x_train =
+    # y_train =
+    # x_test = 
+    # y_test = 
+    
 
 def load_stl() -> DATASET_TYPE:
     """
