@@ -91,7 +91,7 @@ def render(greeble, f, lamp_type, lamp_empty=None):
         x_angle = random_angle(min_angle=-30, max_angle=30)
         y_angle = random_angle(min_angle=-30, max_angle=30)
         
-        if set_mode == "specific":
+        if set_mode == "specific" or set_mode == "specific_all":
             if set_type == "specific_angle":
                 greeble.rotation_euler = (xr, yr, zr)
             else:
@@ -222,7 +222,7 @@ else:
 
     parser.add_argument(
         "-sm", "--set_mode", dest="set_mode", type=str, required=True,
-        choices=['original', 'flat_range', 'new_flat', 'upside_down', 'specific'],
+        choices=['original', 'flat_range', 'new_flat', 'upside_down', 'specific', 'specific_all'],
         help="Mode to use. With 'specific' you can get individual samples."
     )
 
@@ -253,7 +253,7 @@ else:
 
     parser.add_argument(
         "-dp", "--dataset_path", dest="dataset_path", type=str, required=True,
-        help="Path to put the rendered images in. Subfolders will be created inside here depending on the mode."
+        help="Path to where the 3D models are located. The structure is: folder-> family_subfolders->3ds_files. Don't use trailing slash at the end of the path"
     )
 
     parser.add_argument(
@@ -262,17 +262,17 @@ else:
     )
 
     parser.add_argument(
-        "-xr", "--xr_angle", dest="xr", type=float, required=False,
+        "-xr", "--xr_angle", dest="xr", type=int, required=False,
         help="X Angle to use for rotation."
     )
 
     parser.add_argument(
-        "-yr", "--yr_angle", dest="yr", type=float, required=False,
+        "-yr", "--yr_angle", dest="yr", type=int, required=False,
         help="Y Angle to use for rotation."
     )
 
     parser.add_argument(
-        "-zr", "--zr_angle", dest="zr", type=float, required=False,
+        "-zr", "--zr_angle", dest="zr", type=int, required=False,
         help="Z Angle to use for rotation."
     )
 
@@ -296,7 +296,10 @@ else:
     zr = args.zr
     
     # paths
-    orig_path = os.path.join(dataset_path, "Greebles 3DS")
+    # orig_path = os.path.join(dataset_path, "Greebles 3DS")
+    orig_path = os.path.normpath(dataset_path)
+    orig_path = orig_path.rstrip("\\'\"") #strip any quotes or backslashes
+
     if path_format == 'tensorflow':
         render_path = os.path.join(render_path, "greebles_tf-" + set_mode, set_type, "")
     else:
@@ -335,12 +338,15 @@ all_filtered = []
 for root, dirs, files in os.walk(orig_path):
     # pick out 3DS files
     current_filtered = list(filter(lambda x: x[-4:].lower() == ".3ds", files))
-    all_filtered.extend(current_filtered)
+    filtered = []
+    for f in current_filtered:
+        filtered = os.path.join(root,f)
+        all_filtered.append(filtered)
 
 print(all_filtered)
 print(len(all_filtered))
 
-print(dir(random))
+input("CONTINUE???")
 
 def random_choices(population, k=1):
     samples = []
@@ -353,6 +359,10 @@ if set_mode == 'specific':
     # Generate just one pose per choice of greeble
     POSES_PER_GREEBLE = 1
     filtered = random_choices(all_filtered, k=num_imgs)
+elif set_mode == 'specific_all':
+    # Generate just one pose per choice of greeble
+    POSES_PER_GREEBLE = 1
+    filtered = all_filtered
 
 # filtered_dict = {"filename": curr_greeble}
 
@@ -360,9 +370,10 @@ if set_mode == 'specific':
     # filehandle.writelines("%s\n" % place for place in filtered)
 
 for f in filtered:
-    # curr_greeble = process_greeble(curr_greeble, root, f)
+    head, tail = os.path.split(f)
+    curr_greeble = process_greeble(curr_greeble, head, tail)
     print(f)
-    input("---------")
+    # input("---------")
 
 
 # Write to file parameters to communicate back
