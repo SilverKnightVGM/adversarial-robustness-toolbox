@@ -93,7 +93,7 @@ def render(greeble, f, lamp_type, lamp_empty=None):
         
         if set_mode == "specific" or set_mode == "specific_all":
             if set_type == "specific_angle":
-                greeble.rotation_euler = (xr, yr, zr)
+                greeble.rotation_euler = (radians(xr), radians(yr), radians(zr))
             else:
                 raise AttributeError("You need to specify the XYZ angles of rotation")
         elif set_mode == "original":
@@ -113,14 +113,14 @@ def render(greeble, f, lamp_type, lamp_empty=None):
                 greeble.rotation_euler = (0, 0, random_angle(min_angle=-60, max_angle=60))
         elif set_mode == "upside_down":
             if set_type == "train":
-                greeble.rotation_euler = (180, 0, 0)
+                greeble.rotation_euler = (radians(180), 0, 0)
             if set_type == "test":
                 greeble.rotation_euler = (0, 0, random_angle(min_angle=220, max_angle=260))
         elif set_mode == "flat_range_90":
             if set_type == "train":
                 greeble.rotation_euler = (0, 0, 0)
             if set_type == "test":
-                greeble.rotation_euler = (0, 0, 90)
+                greeble.rotation_euler = (0, 0, radians(90))
                    
         # rotate lamp randomly
         if lamp_empty is not None:
@@ -301,9 +301,11 @@ else:
     orig_path = orig_path.rstrip("\\'\"") #strip any quotes or backslashes
 
     if path_format == 'tensorflow':
-        render_path = os.path.join(render_path, "greebles_tf-" + set_mode, set_type, "")
+        path_format_name = "greebles_tf-"
     else:
-        render_path = os.path.join(render_path, "greebles_keras-" + set_mode, set_type, "")
+        path_format_name = "greebles_keras-"
+    
+    render_path = os.path.join(render_path, path_format_name + set_mode, set_type, "")
 
 # print(r)
 # print(set_type)
@@ -346,7 +348,7 @@ for root, dirs, files in os.walk(orig_path):
 print(all_filtered)
 print(len(all_filtered))
 
-input("CONTINUE???")
+# input("CONTINUE???")
 
 def random_choices(population, k=1):
     samples = []
@@ -355,7 +357,7 @@ def random_choices(population, k=1):
     return samples
 
 
-if set_mode == 'specific':
+if set_mode == 'specific': #pick a subset of greebles
     # Generate just one pose per choice of greeble
     POSES_PER_GREEBLE = 1
     filtered = random_choices(all_filtered, k=num_imgs)
