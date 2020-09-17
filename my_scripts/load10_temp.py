@@ -6,6 +6,7 @@ from sklearn.preprocessing import OneHotEncoder, LabelBinarizer
 import platform
 import shutil
 
+class_names = {}
 
 def move_to_folder(source_folder, dest_folder):
     
@@ -17,7 +18,8 @@ def move_to_folder(source_folder, dest_folder):
     files = (file for file in os.listdir(source_folder) if os.path.isfile(os.path.join(source_folder, file)))
     
     for file in files:
-        shutil.move(os.path.join(source_folder, file), os.path.join(dest_folder, file))
+        if file.endswith("png"):
+            shutil.move(os.path.join(source_folder, file), os.path.join(dest_folder, file))
     
     return
 
@@ -134,12 +136,23 @@ def load_dataset_temp(return_set, path, greebles_mode=2):
     filtered_all_labels = list(set(train_filenames)).sort()
     # lb = OneHotEncoder(categories=filtered_all_labels)
     lb = LabelBinarizer()
+    global class_names
     
     if return_set == "train":
         train_labels = np.asarray(lb.fit_transform(train_labels_temp))
         train_data = (train_images, train_labels)
+        
+        class_names['train'] = lb.classes_
+        
         return train_data
     elif return_set == "test":
         eval_labels = np.asarray(lb.fit_transform(eval_labels_temp))
         eval_data = (eval_images, eval_labels)
+        
+        class_names['test'] = lb.classes_
+        
         return eval_data
+        
+def get_class_names():
+    global class_names
+    return class_names
