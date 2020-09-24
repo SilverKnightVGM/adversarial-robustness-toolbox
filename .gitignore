@@ -120,3 +120,5 @@ demo/pics/*
 
 # Ignore saved models
 *.h5
+my_scripts/models/*
+my_scripts/greebles_10/*
