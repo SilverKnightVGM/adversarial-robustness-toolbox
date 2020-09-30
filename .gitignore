@@ -118,6 +118,9 @@ demo/pics/*
 # Exceptions for my scripts
 !my_scripts/*
 
+# Exception for gradcam vis
+!my_scripts/grad/*
+
 # Ignore saved models
 *.h5
 my_scripts/models/*
