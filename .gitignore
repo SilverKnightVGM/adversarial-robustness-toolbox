@@ -125,3 +125,6 @@ demo/pics/*
 *.h5
 my_scripts/models/*
 my_scripts/greebles_10/*
+
+# Ignore imgages
+my_scripts/grad/saliency
