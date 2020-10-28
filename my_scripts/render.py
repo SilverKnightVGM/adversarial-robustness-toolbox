@@ -40,6 +40,33 @@ NUM_GREEBLES = 80
 POSES_PER_GREEBLE = num_imgs // 80
 ORIGIN = (0, 0, 0)
 
+# https://docs.blender.org/api/blender_python_api_2_64_4/bpy.types.Material.html
+def makeMaterial(name, diffuse, specular, alpha):
+    mat=bpy.data.materials.new(name)
+    mat.diffuse_color = diffuse
+    mat.diffuse_shader = 'LAMBERT'
+    mat.diffuse_intensity = 0.9
+    mat.specular_color = specular
+    mat.specular_shader = 'COOKTORR'
+    mat.specular_intensity = 0.0
+    mat.specular_hardness = 1
+    mat.alpha = alpha
+    mat.ambient = 1
+    return mat
+
+def modifyMaterial(mat):
+    mat.diffuse_shader = 'LAMBERT'
+    mat.diffuse_intensity = 0.98
+    mat.specular_shader = 'COOKTORR'
+    mat.specular_intensity = 0.0
+    mat.specular_hardness = 1
+    return mat
+    
+
+def setMaterial(ob, mat):
+    me = ob.data
+    me.materials.append(mat)
+
 def random_angle(min_angle=0, max_angle=360, step=1):
     return radians((max_angle - min_angle) * random.random() + min_angle)
 
@@ -168,6 +195,12 @@ def process_greeble(greeble, root, f):
     bpy.context.scene.cursor_location = new_origin
     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
     greeble.location = ORIGIN
+    
+    # Material
+    # mat_color = makeMaterial('m_color', (0,0,0), (0,0,0), 0)
+    mod_mat = modifyMaterial(greeble.active_material)
+    # import pdb; pdb.set_trace()
+    greeble.active_material = mod_mat
 
     # set camera location
     camera = bpy.data.objects["Camera"]
@@ -322,7 +355,14 @@ scene = bpy.data.scenes.new("Scene")
 # rendered images should be square
 bpy.context.scene.render.resolution_x = imsize * 2  # not sure why we have to double imsize
 bpy.context.scene.render.resolution_y = bpy.context.scene.render.resolution_x
+
+#https://docs.blender.org/api/2.78/bpy.types.RenderSettings.html
 bpy.context.scene.render.alpha_mode = 'SKY'
+# bpy.context.scene.render.alpha_mode = 'TRANSPARENT'
+
+#https://blender.stackexchange.com/questions/32758/how-to-set-a-background-using-the-cycles-render-engine-with-the-api
+# bpy.context.scene.render.engine = 'CYCLES'
+# bpy.context.scene.world.use_nodes = True
 
 # https://blender.stackexchange.com/questions/149710/python-render-object-with-transparent-background
 # transparent background
