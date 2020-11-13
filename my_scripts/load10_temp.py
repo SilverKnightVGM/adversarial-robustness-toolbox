@@ -55,9 +55,11 @@ def load_dataset_temp(return_set, path, greebles_mode=2):
             eval_images = np.expand_dims(eval_images, axis=-1)
     else:
         if return_set == "train":
-            train_images = np.array([np.array(Image.open(path_train + "/" + fname))[...,:3] for fname in train_filenames])
+            # train_images = np.array([np.array(Image.open(path_train + "/" + fname))[...,:3] for fname in train_filenames])
+            train_images = np.array([np.array(Image.open(path_train + "/" + fname).convert('L')) for fname in train_filenames])
         elif return_set == "test":
-            eval_images = np.array([np.array(Image.open(path_test + "/" + fname))[...,:3] for fname in test_filenames])
+            # eval_images = np.array([np.array(Image.open(path_test + "/" + fname))[...,:3] for fname in test_filenames])
+            eval_images = np.array([np.array(Image.open(path_test + "/" + fname).convert('L')) for fname in test_filenames])
 
     '''
     File names denote the individual Greeble by defining the specific origin of the body type and parts, as well as its gender.
