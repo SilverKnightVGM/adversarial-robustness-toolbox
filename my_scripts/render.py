@@ -40,6 +40,90 @@ NUM_GREEBLES = 80
 POSES_PER_GREEBLE = num_imgs // 80
 ORIGIN = (0, 0, 0)
 
+# Mapping of body parts by their names inside the original files
+parts_mapping = {
+    'Family_1':{
+        "F1":{
+            "BODY":["REVOLVE-01.001"],
+            "NOSE":["REVOLVE-01.002", "REVOLVE-01.008", "REVOLVE-01.007", "REVOLVE-01.006", "REVOLVE-01.005", "REVOLVE-01.004", "REVOLVE-01.003"],
+            "RIGHT_EAR":["REVOLVE-01.009"],
+            "LEFT_EAR":["REVOLVE-01"],
+            "BUMP":["REVOLVE-01.010"]
+        },
+        "M1":{
+            "BODY":["REVOLVE-01.001"],
+            "NOSE":["REVOLVE-01.005", "REVOLVE-01", "REVOLVE-01.009", "REVOLVE-01.008", "REVOLVE-01.007", "REVOLVE-01.006"],
+            "RIGHT_EAR":["REVOLVE-01.002"],
+            "LEFT_EAR":["REVOLVE-01.003"],
+            "BUMP":["REVOLVE-01.004"]
+        }
+    },
+    'Family_2':{
+        "F1":{
+            "BODY":["REVOLVE-01.001"],
+            "NOSE":["REVOLVE-01"],
+            "RIGHT_EAR":["REVOLVE-01.002"],
+            "LEFT_EAR":["REVOLVE-01.003"],
+            "BUMP":["REVOLVE-01.004"]
+        },
+        "M1":{
+            "BODY":["REVOLVE-01.001"],
+            "NOSE":["REVOLVE-01"],
+            "RIGHT_EAR":["REVOLVE-01.002"],
+            "LEFT_EAR":["REVOLVE-01.003"],
+            "BUMP":["REVOLVE-01.004"]
+        }
+    },
+    'Family_3':{
+        "F1":{
+            "BODY":["REVOLVE-01.001"],
+            "NOSE":["REVOLVE-01.002"],
+            "RIGHT_EAR":["REVOLVE-01"],
+            "LEFT_EAR":["REVOLVE-01.004"],
+            "BUMP":["REVOLVE-01.003"]
+        },
+        "M1":{
+            "BODY":["REVOLVE-01.001"],
+            "NOSE":["REVOLVE-01"],
+            "RIGHT_EAR":["REVOLVE-01.002"],
+            "LEFT_EAR":["REVOLVE-01.003"],
+            "BUMP":["REVOLVE-01.004"]
+        }
+    },
+    'Family_4':{
+        "F1":{
+            "BODY":["body type .001"],
+            "NOSE":["body type "],
+            "RIGHT_EAR":["body type .002"],
+            "LEFT_EAR":["body type .003"],
+            "BUMP":["body type .004"]
+        },
+        "M1":{
+            "BODY":["body type .001"],
+            "NOSE":["body type "],
+            "RIGHT_EAR":["body type .002"],
+            "LEFT_EAR":["body type .003"],
+            "BUMP":["body type .004"]
+        }
+    },
+    'Family_5':{
+        "F1":{
+            "BODY":["body type .001", "body type "],
+            "NOSE":["body type .005"],
+            "RIGHT_EAR":["body type .002"],
+            "LEFT_EAR":["body type .003"],
+            "BUMP":["body type .004"]
+        },
+        "M1":{
+            "BODY":["body type .001", "body type "],
+            "NOSE":["body type .005"],
+            "RIGHT_EAR":["body type .002"],
+            "LEFT_EAR":["body type .003"],
+            "BUMP":["body type .004"]
+        }
+    }
+}
+
 # https://docs.blender.org/api/blender_python_api_2_64_4/bpy.types.Material.html
 def makeMaterial(name, diffuse, specular, alpha):
     mat=bpy.data.materials.new(name)
@@ -70,6 +154,15 @@ def setMaterial(ob, mat):
 def random_angle(min_angle=0, max_angle=360, step=1):
     return radians((max_angle - min_angle) * random.random() + min_angle)
 
+def flatten(lst):
+    for item in lst:
+        if isinstance(item, list) and not isinstance(item, str):
+            yield from flatten(item)
+        else:
+            yield item
+
+def flatten_list(lst):
+    return list(flatten(lst))
 
 def delete_obj(label):
     obj = bpy.data.objects.get(label)
@@ -77,6 +170,55 @@ def delete_obj(label):
         obj.select = True
         bpy.ops.object.delete()
 
+def split_parts(greeble, filename, parts_to_remove=['NOSE', 'BUMP']):
+    """Splits the greeble model into parts in order to remove some of them
+
+    Args:
+        greeble ([bpy_types.Object]): greeble blender object
+        filename ([str]): filename (not path) of greeble with extension
+        parts_to_remove (list, optional): List of parts to remove, Possible values are ['BUMP', 'NOSE', 'LEFT_EAR', 'BODY', 'RIGHT_EAR']. Defaults to ['NOSE', 'BUMP'].
+    """
+    gender = filename[0].upper()
+    family = filename[1]
+    parts_to_remove = [item.upper() for item in parts_to_remove]
+
+    # import pdb; pdb.set_trace()
+
+    parts = greeble
+    # print("PARTS TYPE:", parts.type)
+    bpy.ops.mesh.separate(type='LOOSE')
+    parts = bpy.context.selected_objects
+    # sort by number of verts (last has most)
+    parts.sort(key=lambda o: len(o.data.vertices))
+      
+    part_names = []
+    for part in parts:
+        print(part.name, len(part.data.vertices))
+        part_names.append(part.name)
+        
+    # Get the actual part names with the mapping
+    parts_to_remove_map = []
+    for part in parts_to_remove:
+        n = parts_mapping['Family_'+family][gender+'1'][part]
+        parts_to_remove_map.append(n)
+    
+    parts_to_remove_map = flatten_list(parts_to_remove_map)
+    
+    parts_to_pop = []
+    for idx, pn in enumerate(part_names):
+        if pn in parts_to_remove_map:
+            continue
+        else:
+            # parts to keep later
+            parts_to_pop.append(idx)
+
+    # pop off part to be kept
+    for i in reversed(parts_to_pop):
+        parts.pop(i)
+
+    # remove the rest
+    for o in parts:
+        bpy.data.objects.remove(o, do_unlink=True)
 
 def add_lamp(lamp_name, lamp_type, radius=r, mode=light_mode):
     # adapted from Stack Overflow:
@@ -165,6 +307,9 @@ def render(greeble, f, lamp_type, lamp_empty=None):
             else:
                 pass
 
+        # Split and remove parts
+        split_parts(greeble, f, parts_to_remove=['LEFT_EAR'])
+        
         if path_format == 'tensorflow':
             bpy.context.scene.render.filepath = "{}{}_{}_{:03d}.png".format(render_path, f[:-4], lamp_type, i)
         else:
@@ -199,8 +344,11 @@ def process_greeble(greeble, root, f):
     # Material
     # mat_color = makeMaterial('m_color', (0,0,0), (0,0,0), 0)
     mod_mat = modifyMaterial(greeble.active_material)
-    # import pdb; pdb.set_trace()
+
     greeble.active_material = mod_mat
+
+    # # Split and remove parts
+    # split_parts(greeble, f, parts_to_remove=['LEFT_EAR'])
 
     # set camera location
     camera = bpy.data.objects["Camera"]
