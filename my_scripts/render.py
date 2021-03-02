@@ -223,7 +223,10 @@ def split_parts(greeble, filename, parts_to_remove=['NOSE', 'BUMP']):
 def add_lamp(lamp_name, lamp_type, radius=r, mode=light_mode):
     # adapted from Stack Overflow:
     # https://stackoverflow.com/questions/17355617/can-you-add-a-light-source-in-blender-using-python
-    data = bpy.data.lamps.new(name=lamp_name, type=lamp_type)
+    
+    # data = bpy.data.lamps.new(name=lamp_name, type=lamp_type)
+    # Hemi light is the most even
+    data = bpy.data.lamps.new(name=lamp_name, type="HEMI")
     
     if mode == 'original':
         pass
@@ -308,7 +311,10 @@ def render(greeble, f, lamp_type, lamp_empty=None):
                 pass
 
         # Split and remove parts
-        split_parts(greeble, f, parts_to_remove=['LEFT_EAR'])
+        if rmparts is not None:
+            split_parts(greeble, f, parts_to_remove=rmparts)
+            parts_str = "-".join(rmparts)
+            lamp_type =  lamp_type + "_" + parts_str
         
         if path_format == 'tensorflow':
             bpy.context.scene.render.filepath = "{}{}_{}_{:03d}.png".format(render_path, f[:-4], lamp_type, i)
@@ -346,9 +352,9 @@ def process_greeble(greeble, root, f):
     mod_mat = modifyMaterial(greeble.active_material)
 
     greeble.active_material = mod_mat
-
-    # # Split and remove parts
-    # split_parts(greeble, f, parts_to_remove=['LEFT_EAR'])
+    
+    # No shadows
+    # greeble.active_material.use_shadeless = True
 
     # set camera location
     camera = bpy.data.objects["Camera"]
@@ -457,6 +463,12 @@ else:
         help="Z Angle to use for rotation."
     )
 
+    parser.add_argument(
+        "-p", "--parts_remove", nargs="*", dest="rmparts", type=str, required=False,
+        choices=['BODY', 'NOSE', 'RIGHT_EAR', 'LEFT_EAR', 'BUMP'],
+        help="Parts to remove from the greeble. Can input multiple, separate with spaces"
+    )
+
     # Parse argv contents
     args = parser.parse_args(argv)
 
@@ -471,6 +483,9 @@ else:
     num_imgs = args.num_imgs
     dataset_path = args.dataset_path
     render_path = args.render_path
+    rmparts = args.rmparts
+    # print(rmparts)
+    # import pdb; pdb.set_trace()
     # Angles
     xr = args.xr
     yr = args.yr

@@ -6,7 +6,7 @@ import shutil
 img_size = 320
 
 render_util_folder = os.getcwd()
-blender_folder = r"D:\Users\Enzo\Desktop\poke102938\School\RIT No Sync\Research\GAN\blender-2.78c-windows64" 
+blender_folder = r"D:\Users\Enzo\Desktop\poke102938\School\RIT No Sync\Research\GAN\blender-2.78c-windows64"
 
 dataset_folder = r"D:\Users\Enzo\Desktop\poke102938\School\RIT No Sync\Research\GAN\greebles-generator-master\Greebles_3DS_10"
 render_folder = os.path.join(os.getcwd(), "test_render") #reduced dataset of 10
@@ -40,12 +40,15 @@ set_mode = 'specific_all'
 set_type = 'specific_angle'
 #####################################
 # Generate training set
+# blender_process = subprocess.run([blender_exec, '-b', '-P', render_script, '--',
+#                     # "--parts_remove", "NOSE", "BUMP",
+#                     '-st', set_type, '-sm', set_mode, '-rp', render_folder, '-dp', dataset_folder, '-rm', 'none', '-pf', 'tensorflow',
+#                     '-is', str(img_size), '-ni', '1', '-xr', '0', '-yr', '0', '-zr', '90'])
+
+
 blender_process = subprocess.run([blender_exec, '-b', '-P', render_script, '--', 
                     '-st', set_type, '-sm', set_mode, '-rp', render_folder, '-dp', dataset_folder, '-rm', 'none', '-pf', 'tensorflow',
-                    '-is', str(img_size), '-ni', '1', '-xr', '0', '-yr', '45', '-zr', '0'])
-
-
-
+                    '-is', str(img_size), '-ni', '1', '-xr', '0', '-yr', '0', '-zr', '80'])
 
 
 
