@@ -53,7 +53,7 @@ set_type = 'specific_angle'
 
 blender_process = subprocess.run([blender_exec, '-b', '-P', render_script, '--', 
                     '-st', set_type, '-sm', set_mode, '-rp', render_folder, '-dp', dataset_folder, '-rm', 'none', '-pf', 'tensorflow',
-                    '-is', str(img_size), '-ni', '1', '-xr', '0', '-yr', '20', '-zr', '80'])
+                    '-is', str(img_size), '-ni', '1', '-xr', '0', '-yr', '180', '-zr', '0'])
 
 
 
