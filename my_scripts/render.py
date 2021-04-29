@@ -36,8 +36,14 @@ if path_format == 'tensorflow':
 else:
     render_path = os.getcwd() + "/greebles_keras" + "-" + set_mode + "/" + set_type + "/"
 
-NUM_GREEBLES = 80
-POSES_PER_GREEBLE = num_imgs // 80
+# For original amount of greebles
+# NUM_GREEBLES = 80
+# POSES_PER_GREEBLE = num_imgs // 80
+
+# For reduced set of 10 total greebles
+NUM_GREEBLES = 10
+POSES_PER_GREEBLE = num_imgs // NUM_GREEBLES
+
 ORIGIN = (0, 0, 0)
 
 # Mapping of body parts by their names inside the original files
@@ -293,6 +299,11 @@ def render(greeble, f, lamp_type, lamp_empty=None):
                 greeble.rotation_euler = (0, 0, 0)
             if set_type == "test":
                 greeble.rotation_euler = (0, 0, radians(90))
+        elif set_mode == "original_mod1":
+            if set_type == "train":
+                greeble.rotation_euler = (x_angle, y_angle, 0)
+            if set_type == "test":
+                greeble.rotation_euler = (radians(xr), radians(yr), radians(zr))
                    
         # rotate lamp randomly
         if lamp_empty is not None:
@@ -409,7 +420,7 @@ else:
 
     parser.add_argument(
         "-sm", "--set_mode", dest="set_mode", type=str, required=True,
-        choices=['original', 'flat_range', 'new_flat', 'upside_down', 'specific', 'specific_all'],
+        choices=['original', 'flat_range', 'new_flat', 'upside_down', 'specific', 'specific_all', 'original_mod1'],
         help="Mode to use. With 'specific' you can get individual samples."
     )
 
@@ -567,6 +578,9 @@ if set_mode == 'specific': #pick a subset of greebles
 elif set_mode == 'specific_all':
     # Generate just one pose per choice of greeble
     POSES_PER_GREEBLE = 1
+    filtered = all_filtered
+else:
+    POSES_PER_GREEBLE = num_imgs // NUM_GREEBLES
     filtered = all_filtered
 
 # filtered_dict = {"filename": curr_greeble}
